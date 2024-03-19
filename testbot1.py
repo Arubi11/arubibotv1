@@ -16,18 +16,26 @@ class MyBot(commands.Bot):
         activity = discord.Game("잠자기")
         await self.change_presence(status=discord.Status.idle, activity=activity)
 
-        async def on_message(self, message):
-            if message.content == "루비야 정지" and message.author.id == self.owner_id:  # 봇 소유자만이 정지 명령어를 실행할 수 있도록 설정
-                await self.logout()  # 봇 로그아웃
-            else:
-                await self.process_commands(message)
+    async def on_message(self, message):
+        if message.content == "루비야 정지" and message.author.id == self.owner_id:
+            await self.close()  # 봇 종료
+        else:
+            await self.process_commands(message)
 
-with open('tokenid.json', 'r') as f:
-    config = json.load(f)
-TOKEN = config['token']
-OWNER_ID = int(config['owner_id'])  # 설정 파일에 봇 소유자의 ID를 정수형으로 변환하여 저장
+    async def close(self):
+        print("봇을 종료합니다.")
+        await super().close()
 
+# 설정 파일에 봇 소유자의 ID를 정수형으로 변환하여 저장
 bot = MyBot(OWNER_ID)
+
+
+@bot.command()
+async def 정지(ctx):
+    if ctx.author.id == bot.owner_id:
+        await bot.logout()
+    else:
+        await ctx.send("이 명령어를 사용할 권한이 없습니다.")
 
 @bot.command()
 async def 안녕(ctx):
@@ -157,4 +165,4 @@ async def 따라해_error(ctx, error):
         await ctx.send("관리자만 이 커맨드를 사용할 수 있어!")
 
 
-bot.run(TOKEN)
+bot.run(os.environ['token'])
